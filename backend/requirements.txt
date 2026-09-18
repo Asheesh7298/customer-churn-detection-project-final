@@ -1,11 +1,13 @@
 # Runtime dependencies (what the API server needs to serve predictions).
 # Training-only and test deps live in requirements-dev.txt.
+# Versions match those the model artifacts were trained/pickled under, so the
+# saved pipeline and SHAP background load cleanly in production (Python 3.12).
 fastapi==0.115.0
 uvicorn[standard]==0.30.6
 scikit-learn==1.5.2
-shap==0.52.0
+shap==0.51.0
 joblib==1.4.2
-numpy==1.26.4
-pandas==2.2.3
+numpy==2.4.2
+pandas==3.0.1
 python-multipart==0.0.9
 pydantic==2.9.2

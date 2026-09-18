@@ -38,9 +38,7 @@ FEATURE_LABELS = {
 class ChurnModel:
     def __init__(self) -> None:
         self.pipeline = joblib.load(os.path.join(config.ARTIFACT_DIR, "pipeline.pkl"))
-        self.background = joblib.load(
-            os.path.join(config.ARTIFACT_DIR, "shap_background.pkl")
-        )
+        self.background = self._load_background()
         with open(os.path.join(config.ARTIFACT_DIR, "metrics.json")) as f:
             self.metrics = json.load(f)
         with open(os.path.join(config.ARTIFACT_DIR, "comparison.json")) as f:
@@ -57,6 +55,18 @@ class ChurnModel:
         # (matters on small/free instances).
         self._explainer = None
         self._explainer_ready = False
+
+    def _load_background(self) -> pd.DataFrame:
+        """SHAP background sample, rebuilt from the CSV so it never depends on a
+        pickle written by a possibly-different pandas version."""
+        df = pd.read_csv(config.DATA_PATH)
+        df["TotalCharges"] = pd.to_numeric(
+            df["TotalCharges"], errors="coerce"
+        ).fillna(0.0)
+        feature_cols = [c for c in df.columns if c not in ("customerID", "Churn")]
+        return df[feature_cols].sample(
+            min(100, len(df)), random_state=42
+        ).reset_index(drop=True)
 
     # ---- prediction ----
     def predict_proba(self, df: pd.DataFrame) -> np.ndarray:
