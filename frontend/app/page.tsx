@@ -1,164 +1,137 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { MetricCard } from "@/components/metric-card";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/page-header";
+import { Stat, StatRow } from "@/components/stat";
+import { RiskBadge } from "@/components/risk-badge";
 import { useModelMetrics, useTopRiskCustomers } from "@/lib/hooks";
-import { PredictionResponse } from "@/lib/types";
+import { formatPercent } from "@/lib/format";
+import { RiskLevel } from "@/lib/risk";
 import Link from "next/link";
-import { AlertCircle, TrendingUp, Users } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 
 export default function HomePage() {
-  const { data: metrics, loading: metricsLoading } = useModelMetrics(true);
-  const { customers: topRisk, loading: riskLoading } = useTopRiskCustomers(30000);
+  const { data: metrics } = useModelMetrics(true);
+  const { customers: topRisk, loading: riskLoading } =
+    useTopRiskCustomers(30000);
   const [avgChurnScore, setAvgChurnScore] = useState(0);
 
   useEffect(() => {
     if (topRisk.length > 0) {
-      const avg =
+      setAvgChurnScore(
         topRisk.reduce((sum, c) => sum + c.churn_probability, 0) /
-        topRisk.length;
-      setAvgChurnScore(avg);
+          topRisk.length
+      );
     }
   }, [topRisk]);
 
-  const highRiskCount = topRisk.filter(
-    (c) => c.risk_level === "high"
-  ).length;
+  const highRiskCount = topRisk.filter((c) => c.risk_level === "high").length;
 
   return (
-    <div className="space-y-8 p-4 md:p-8">
-      {/* Header */}
-      <div className="space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight">
-          Churn Prediction Dashboard
-        </h1>
-        <p className="text-muted-foreground">
-          Real-time customer churn risk monitoring and analysis
-        </p>
-      </div>
-
-      {/* Key Metrics */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <MetricCard
-          title="Model Accuracy"
-          value={metrics ? `${(metrics.accuracy * 100).toFixed(1)}%` : "—"}
-          subtitle={metrics ? `v${metrics.model_version}` : ""}
-          icon="🎯"
-        />
-        <MetricCard
-          title="Average Churn Risk"
-          value={`${(avgChurnScore * 100).toFixed(1)}%`}
-          subtitle={topRisk.length > 0 ? "from top 20 customers" : ""}
-          icon="📊"
-        />
-        <MetricCard
-          title="High-Risk Customers"
-          value={highRiskCount}
-          subtitle={`of ${topRisk.length} analyzed`}
-          trend="up"
-          trendLabel="Monitor closely"
-          icon="⚠️"
-        />
-        <MetricCard
-          title="Model Precision"
-          value={metrics ? `${(metrics.precision * 100).toFixed(1)}%` : "—"}
-          subtitle={metrics ? `Recall: ${(metrics.recall * 100).toFixed(1)}%` : ""}
-          icon="✓"
-        />
-      </div>
-
-      {/* Top Risk Customers Section */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="space-y-1">
-            <h2 className="text-2xl font-bold tracking-tight">
-              Top Risk Customers
-            </h2>
-            <p className="text-sm text-muted-foreground">
-              Customers with highest churn probability (auto-updated every 30 seconds)
-            </p>
-          </div>
+    <div className="mx-auto max-w-6xl space-y-10 p-4 md:p-8">
+      <PageHeader
+        title="Retention Intelligence"
+        aside={
           <Link href="/customer-profile">
-            <Button>Analyze Customer</Button>
+            <Button>Score a customer</Button>
           </Link>
+        }
+      >
+        Predict which telecom customers are about to leave, understand why, and
+        weigh what it is worth to keep them — on a model trained over 7,043 real
+        accounts.
+      </PageHeader>
+
+      <StatRow>
+        <Stat
+          label="Model AUC"
+          value={formatPercent(metrics?.roc_auc)}
+          hint={metrics ? `v${metrics.model_version}` : " "}
+          emphasis
+        />
+        <Stat
+          label="Avg. risk, top 20"
+          value={formatPercent(avgChurnScore)}
+          hint="highest-probability accounts"
+          emphasis
+        />
+        <Stat
+          label="High-risk"
+          value={String(highRiskCount)}
+          hint={`of ${topRisk.length} reviewed`}
+          tone="negative"
+          emphasis
+        />
+        <Stat
+          label="Recall"
+          value={formatPercent(metrics?.recall)}
+          hint={metrics ? `precision ${formatPercent(metrics.precision)}` : " "}
+          emphasis
+        />
+      </StatRow>
+
+      {/* Watchlist */}
+      <section className="space-y-4">
+        <div className="flex items-baseline justify-between">
+          <h2 className="font-display text-xl font-semibold tracking-tight">
+            Retention watchlist
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            Refreshes every 30s
+          </p>
         </div>
 
-        {riskLoading ? (
-          <Card className="p-8">
-            <p className="text-center text-muted-foreground">Loading...</p>
+        {riskLoading && topRisk.length === 0 ? (
+          <Card className="p-10 text-center text-muted-foreground">
+            Loading accounts…
           </Card>
         ) : topRisk.length === 0 ? (
-          <Card className="p-8">
-            <p className="text-center text-muted-foreground">
-              No customer data available
-            </p>
+          <Card className="p-10 text-center text-muted-foreground">
+            No customer data available. Start the API to populate the watchlist.
           </Card>
         ) : (
           <Card className="overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="border-b bg-muted/50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-sm font-medium text-muted-foreground">
-                      Customer ID
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
+                    <th className="px-6 py-3 font-medium">Account</th>
+                    <th className="px-6 py-3 font-medium text-right">
+                      Churn probability
                     </th>
-                    <th className="px-6 py-3 text-left text-sm font-medium text-muted-foreground">
-                      Name
-                    </th>
-                    <th className="px-6 py-3 text-center text-sm font-medium text-muted-foreground">
-                      Churn Risk
-                    </th>
-                    <th className="px-6 py-3 text-center text-sm font-medium text-muted-foreground">
-                      Risk Level
-                    </th>
+                    <th className="px-6 py-3 font-medium text-right">Risk</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y">
+                <tbody className="divide-y divide-border">
                   {topRisk.slice(0, 10).map((customer) => (
                     <tr
                       key={customer.customer_id}
-                      className="hover:bg-muted/50 transition-colors"
+                      className="transition-colors hover:bg-muted/40"
                     >
-                      <td className="px-6 py-4 text-sm font-medium">
+                      <td className="px-6 py-3.5 font-medium">
                         {customer.customer_id}
                       </td>
-                      <td className="px-6 py-4 text-sm">
-                        {customer.name || "—"}
-                      </td>
-                      <td className="px-6 py-4 text-center">
-                        <div className="text-sm font-semibold">
-                          {(customer.churn_probability * 100).toFixed(1)}%
-                        </div>
-                        <div className="h-1 w-16 bg-gray-200 rounded-full mt-1 mx-auto overflow-hidden">
-                          <div
-                            className={`h-full ${
-                              customer.churn_probability < 0.33
-                                ? "bg-green-500"
-                                : customer.churn_probability < 0.67
-                                  ? "bg-amber-500"
-                                  : "bg-red-500"
-                            }`}
-                            style={{
-                              width: `${customer.churn_probability * 100}%`,
-                            }}
-                          />
+                      <td className="px-6 py-3.5">
+                        <div className="flex items-center justify-end gap-3">
+                          <div className="hidden h-1 w-24 overflow-hidden rounded-full bg-muted sm:block">
+                            <div
+                              className="h-full bg-primary"
+                              style={{
+                                width: `${customer.churn_probability * 100}%`,
+                              }}
+                            />
+                          </div>
+                          <span className="tnum font-medium">
+                            {formatPercent(customer.churn_probability)}
+                          </span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-center">
-                        <span
-                          className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium ${
-                            customer.risk_level === "low"
-                              ? "bg-green-50 text-green-700"
-                              : customer.risk_level === "medium"
-                                ? "bg-amber-50 text-amber-700"
-                                : "bg-red-50 text-red-700"
-                          }`}
-                        >
-                          <AlertCircle className="h-3 w-3" />
-                          {customer.risk_level.toUpperCase()}
-                        </span>
+                      <td className="px-6 py-3.5 text-right">
+                        <RiskBadge
+                          level={customer.risk_level as RiskLevel}
+                        />
                       </td>
                     </tr>
                   ))}
@@ -167,58 +140,42 @@ export default function HomePage() {
             </div>
           </Card>
         )}
-      </div>
+      </section>
 
-      {/* Quick Actions */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <Link href="/customer-profile">
-          <Card className="p-6 cursor-pointer hover:bg-muted/50 transition-colors">
-            <div className="flex items-start gap-4">
-              <div className="p-2 bg-primary/10 rounded-lg">
-                <Users className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <h3 className="font-semibold">Analyze Customer</h3>
-                <p className="text-sm text-muted-foreground">
-                  Get churn prediction for individual customers
-                </p>
-              </div>
+      {/* Directory */}
+      <section className="grid gap-px overflow-hidden rounded-md border border-border bg-border sm:grid-cols-3">
+        {[
+          {
+            href: "/retention-simulator",
+            title: "Retention simulator",
+            body: "Test which action lowers a customer's churn the most.",
+          },
+          {
+            href: "/business-impact",
+            title: "Business impact",
+            body: "Turn a targeting threshold into revenue saved and ROI.",
+          },
+          {
+            href: "/model-performance",
+            title: "Model report",
+            body: "Held-out metrics, curves, and model comparison.",
+          },
+        ].map((item) => (
+          <Link
+            key={item.href}
+            href={item.href}
+            className="group bg-card p-6 transition-colors hover:bg-muted/40"
+          >
+            <div className="flex items-start justify-between">
+              <h3 className="font-display text-base font-semibold">
+                {item.title}
+              </h3>
+              <ArrowUpRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
             </div>
-          </Card>
-        </Link>
-
-        <Link href="/result-charts">
-          <Card className="p-6 cursor-pointer hover:bg-muted/50 transition-colors">
-            <div className="flex items-start gap-4">
-              <div className="p-2 bg-primary/10 rounded-lg">
-                <TrendingUp className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <h3 className="font-semibold">View Charts</h3>
-                <p className="text-sm text-muted-foreground">
-                  Visualize churn factors and distributions
-                </p>
-              </div>
-            </div>
-          </Card>
-        </Link>
-
-        <Link href="/customer-segmentation">
-          <Card className="p-6 cursor-pointer hover:bg-muted/50 transition-colors">
-            <div className="flex items-start gap-4">
-              <div className="p-2 bg-primary/10 rounded-lg">
-                <AlertCircle className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <h3 className="font-semibold">Segmentation</h3>
-                <p className="text-sm text-muted-foreground">
-                  View customers grouped by risk levels
-                </p>
-              </div>
-            </div>
-          </Card>
-        </Link>
-      </div>
+            <p className="mt-2 text-sm text-muted-foreground">{item.body}</p>
+          </Link>
+        ))}
+      </section>
     </div>
   );
 }

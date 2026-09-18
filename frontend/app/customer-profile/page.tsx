@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useCustomerList, usePrediction, useCustomerDetail } from "@/lib/hooks";
 import { PredictionResult } from "@/components/prediction-result";
+import { PageHeader } from "@/components/page-header";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -103,15 +104,11 @@ export default function CustomerProfilePage() {
   };
 
   return (
-    <div className="space-y-8 p-4 md:p-8">
-      <div className="space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight">
-          Customer Profile & Prediction
-        </h1>
-        <p className="text-muted-foreground">
-          Select a customer and adjust their features to predict churn risk
-        </p>
-      </div>
+    <div className="mx-auto max-w-6xl space-y-8 p-4 md:p-8">
+      <PageHeader title="Customer Profile">
+        Select a customer and adjust their attributes to predict churn risk and
+        see the factors behind it.
+      </PageHeader>
 
       <div className="grid gap-8 lg:grid-cols-3">
         {/* Form Section */}
@@ -361,45 +358,58 @@ export default function CustomerProfilePage() {
             <>
               <PredictionResult prediction={prediction} />
 
-              {/* Feature Importance */}
+              {/* SHAP feature contributions */}
               {prediction.feature_importance.length > 0 && (
                 <Card className="p-6">
-                  <h3 className="font-semibold mb-4">
-                    Top Contributing Factors
-                  </h3>
+                  <h3 className="font-semibold">Why this prediction?</h3>
+                  <p className="text-xs text-muted-foreground mt-1 mb-4">
+                    SHAP contributions — how each feature pushed this
+                    customer&apos;s churn risk up or down.
+                  </p>
                   <div className="space-y-3">
-                    {prediction.feature_importance.map((feat, i) => (
-                      <div key={i} className="space-y-2">
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="font-medium capitalize">
-                            {feat.feature}
-                          </span>
-                          <span
-                            className={`text-xs font-semibold ${
-                              feat.contribution_direction === "positive"
-                                ? "text-red-600"
-                                : "text-green-600"
-                            }`}
-                          >
-                            {feat.contribution_direction === "positive"
-                              ? "↑ Risk"
-                              : "↓ Risk"}
-                          </span>
-                        </div>
-                        <div className="w-full bg-gray-200 rounded-full h-2">
-                          <div
-                            className={`h-full rounded-full ${
-                              feat.contribution_direction === "positive"
-                                ? "bg-red-500"
-                                : "bg-green-500"
-                            }`}
-                            style={{
-                              width: `${feat.importance * 100}%`,
-                            }}
-                          />
-                        </div>
-                      </div>
-                    ))}
+                    {(() => {
+                      const maxImp = Math.max(
+                        ...prediction.feature_importance.map((f) => f.importance),
+                        0.0001
+                      );
+                      return prediction.feature_importance.map((feat, i) => {
+                        const up = feat.contribution_direction === "positive";
+                        return (
+                          <div key={i} className="space-y-1.5">
+                            <div className="flex items-center justify-between text-sm gap-2">
+                              <span className="font-medium truncate">
+                                {feat.feature}
+                                {feat.value !== undefined && (
+                                  <span className="text-muted-foreground font-normal">
+                                    {" "}
+                                    = {String(feat.value)}
+                                  </span>
+                                )}
+                              </span>
+                              <span
+                                className={`text-xs font-semibold shrink-0 ${
+                                  up
+                                    ? "text-red-600 dark:text-red-400"
+                                    : "text-emerald-600 dark:text-emerald-400"
+                                }`}
+                              >
+                                {up ? "↑ Risk" : "↓ Risk"}
+                              </span>
+                            </div>
+                            <div className="w-full bg-muted rounded-full h-2">
+                              <div
+                                className={`h-full rounded-full ${
+                                  up ? "bg-red-500" : "bg-emerald-500"
+                                }`}
+                                style={{
+                                  width: `${(feat.importance / maxImp) * 100}%`,
+                                }}
+                              />
+                            </div>
+                          </div>
+                        );
+                      });
+                    })()}
                   </div>
                 </Card>
               )}

@@ -1,14 +1,14 @@
 "use client";
 
 import { Card } from "@/components/ui/card";
+import { PageHeader } from "@/components/page-header";
 
 export default function ExplanationPanelPage() {
   return (
-    <div className="space-y-8 p-4 md:p-8">
-      <div className="space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight">SHAP Explanations</h1>
-        <p className="text-muted-foreground">Feature importance and prediction explanations</p>
-      </div>
+    <div className="mx-auto max-w-6xl space-y-8 p-4 md:p-8">
+      <PageHeader title="Reading the Explanations">
+        How to interpret SHAP feature contributions and prediction output.
+      </PageHeader>
 
       <div className="grid gap-6">
         <Card className="p-8">

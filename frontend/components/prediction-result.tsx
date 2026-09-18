@@ -11,19 +11,19 @@ interface PredictionResultProps {
 export function PredictionResult({ prediction }: PredictionResultProps) {
   const riskColors: Record<RiskLevel, { bg: string; text: string; icon: React.ReactNode }> = {
     low: {
-      bg: "bg-green-50",
-      text: "text-green-700",
-      icon: <CheckCircle2 className="h-6 w-6 text-green-600" />,
+      bg: "bg-emerald-50 dark:bg-emerald-950/40",
+      text: "text-emerald-700 dark:text-emerald-400",
+      icon: <CheckCircle2 className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />,
     },
     medium: {
-      bg: "bg-amber-50",
-      text: "text-amber-700",
-      icon: <AlertTriangle className="h-6 w-6 text-amber-600" />,
+      bg: "bg-amber-50 dark:bg-amber-950/40",
+      text: "text-amber-700 dark:text-amber-400",
+      icon: <AlertTriangle className="h-6 w-6 text-amber-600 dark:text-amber-400" />,
     },
     high: {
-      bg: "bg-red-50",
-      text: "text-red-700",
-      icon: <AlertCircle className="h-6 w-6 text-red-600" />,
+      bg: "bg-red-50 dark:bg-red-950/40",
+      text: "text-red-700 dark:text-red-400",
+      icon: <AlertCircle className="h-6 w-6 text-red-600 dark:text-red-400" />,
     },
   };
 
@@ -46,7 +46,7 @@ export function PredictionResult({ prediction }: PredictionResultProps) {
                 Churn Probability
               </p>
               <div className="mt-2 flex items-baseline gap-3">
-                <p className="text-5xl font-bold text-foreground">{probability}%</p>
+                <p className="font-display tnum text-5xl font-semibold text-foreground">{probability}%</p>
                 <p className={`text-lg font-semibold ${riskStyle.text}`}>
                   {prediction.risk_level.toUpperCase()} RISK
                 </p>

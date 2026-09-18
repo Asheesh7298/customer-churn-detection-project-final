@@ -4,79 +4,83 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: oklch(0.98 0.001 200);
-  --foreground: oklch(0.18 0.02 240);
+  /* "Ledger" palette — cool paper ground, ink text, deep navy as the single
+     non-semantic accent (green/amber/red stay reserved for risk semantics). */
+  --background: oklch(0.985 0.003 255);
+  --foreground: oklch(0.23 0.022 260);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.18 0.02 240);
+  --card-foreground: oklch(0.23 0.022 260);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.18 0.02 240);
-  --primary: oklch(0.52 0.16 250);
-  --primary-foreground: oklch(0.98 0 0);
-  --secondary: oklch(0.94 0.02 200);
-  --secondary-foreground: oklch(0.18 0.02 240);
-  --muted: oklch(0.94 0.02 200);
-  --muted-foreground: oklch(0.46 0.02 240);
-  --accent: oklch(0.52 0.16 250);
-  --accent-foreground: oklch(0.98 0 0);
-  --destructive: oklch(0.62 0.22 27);
-  --destructive-foreground: oklch(0.98 0 0);
-  --border: oklch(0.90 0.01 220);
-  --input: oklch(0.94 0.01 220);
-  --ring: oklch(0.52 0.16 250);
-  --chart-1: oklch(0.52 0.16 250);
-  --chart-2: oklch(0.68 0.17 160);
-  --chart-3: oklch(0.75 0.19 140);
-  --chart-4: oklch(0.62 0.22 27);
-  --chart-5: oklch(0.70 0.19 70);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.98 0.001 200);
-  --sidebar-foreground: oklch(0.18 0.02 240);
-  --sidebar-primary: oklch(0.52 0.16 250);
-  --sidebar-primary-foreground: oklch(0.98 0 0);
-  --sidebar-accent: oklch(0.52 0.16 250);
-  --sidebar-accent-foreground: oklch(0.98 0 0);
-  --sidebar-border: oklch(0.90 0.01 220);
-  --sidebar-ring: oklch(0.52 0.16 250);
+  --popover-foreground: oklch(0.23 0.022 260);
+  --primary: oklch(0.36 0.055 259);
+  --primary-foreground: oklch(0.985 0.003 255);
+  --secondary: oklch(0.95 0.006 258);
+  --secondary-foreground: oklch(0.28 0.02 260);
+  --muted: oklch(0.955 0.005 258);
+  --muted-foreground: oklch(0.50 0.016 260);
+  --accent: oklch(0.93 0.008 258);
+  --accent-foreground: oklch(0.30 0.03 260);
+  --destructive: oklch(0.55 0.16 25);
+  --destructive-foreground: oklch(0.985 0.003 255);
+  --border: oklch(0.89 0.007 260);
+  --input: oklch(0.91 0.006 260);
+  --ring: oklch(0.36 0.055 259);
+  --chart-1: oklch(0.36 0.055 259);
+  --chart-2: oklch(0.55 0.09 200);
+  --chart-3: oklch(0.62 0.10 160);
+  --chart-4: oklch(0.60 0.13 60);
+  --chart-5: oklch(0.55 0.14 25);
+  --radius: 0.3rem;
+  --sidebar: oklch(0.985 0.003 255);
+  --sidebar-foreground: oklch(0.23 0.022 260);
+  --sidebar-primary: oklch(0.36 0.055 259);
+  --sidebar-primary-foreground: oklch(0.985 0.003 255);
+  --sidebar-accent: oklch(0.93 0.008 258);
+  --sidebar-accent-foreground: oklch(0.30 0.03 260);
+  --sidebar-border: oklch(0.89 0.007 260);
+  --sidebar-ring: oklch(0.36 0.055 259);
 }
 
 .dark {
-  --background: oklch(0.16 0.01 240);
-  --foreground: oklch(0.94 0.02 200);
-  --card: oklch(0.22 0.02 240);
-  --card-foreground: oklch(0.94 0.02 200);
-  --popover: oklch(0.22 0.02 240);
-  --popover-foreground: oklch(0.94 0.02 200);
-  --primary: oklch(0.62 0.18 250);
-  --primary-foreground: oklch(0.16 0.01 240);
-  --secondary: oklch(0.30 0.02 240);
-  --secondary-foreground: oklch(0.94 0.02 200);
-  --muted: oklch(0.30 0.02 240);
-  --muted-foreground: oklch(0.64 0.02 240);
-  --accent: oklch(0.62 0.18 250);
-  --accent-foreground: oklch(0.16 0.01 240);
-  --destructive: oklch(0.55 0.24 27);
-  --destructive-foreground: oklch(0.94 0.02 200);
-  --border: oklch(0.30 0.02 240);
-  --input: oklch(0.30 0.02 240);
-  --ring: oklch(0.62 0.18 250);
-  --chart-1: oklch(0.62 0.18 250);
-  --chart-2: oklch(0.68 0.17 160);
-  --chart-3: oklch(0.75 0.19 140);
-  --chart-4: oklch(0.62 0.22 27);
-  --chart-5: oklch(0.70 0.19 70);
-  --sidebar: oklch(0.16 0.01 240);
-  --sidebar-foreground: oklch(0.94 0.02 200);
-  --sidebar-primary: oklch(0.62 0.18 250);
-  --sidebar-primary-foreground: oklch(0.16 0.01 240);
-  --sidebar-accent: oklch(0.62 0.18 250);
-  --sidebar-accent-foreground: oklch(0.16 0.01 240);
-  --sidebar-border: oklch(0.30 0.02 240);
-  --sidebar-ring: oklch(0.62 0.18 250);
+  /* Ink-on-slate. Accent becomes a pale steel so it reads on dark. */
+  --background: oklch(0.185 0.012 260);
+  --foreground: oklch(0.92 0.008 258);
+  --card: oklch(0.225 0.014 260);
+  --card-foreground: oklch(0.92 0.008 258);
+  --popover: oklch(0.225 0.014 260);
+  --popover-foreground: oklch(0.92 0.008 258);
+  --primary: oklch(0.74 0.05 255);
+  --primary-foreground: oklch(0.19 0.014 260);
+  --secondary: oklch(0.29 0.016 260);
+  --secondary-foreground: oklch(0.92 0.008 258);
+  --muted: oklch(0.28 0.014 260);
+  --muted-foreground: oklch(0.66 0.014 258);
+  --accent: oklch(0.31 0.018 260);
+  --accent-foreground: oklch(0.92 0.008 258);
+  --destructive: oklch(0.58 0.17 25);
+  --destructive-foreground: oklch(0.92 0.008 258);
+  --border: oklch(0.31 0.016 260);
+  --input: oklch(0.31 0.016 260);
+  --ring: oklch(0.74 0.05 255);
+  --chart-1: oklch(0.74 0.05 255);
+  --chart-2: oklch(0.65 0.09 200);
+  --chart-3: oklch(0.68 0.10 160);
+  --chart-4: oklch(0.70 0.13 60);
+  --chart-5: oklch(0.64 0.15 25);
+  --sidebar: oklch(0.185 0.012 260);
+  --sidebar-foreground: oklch(0.92 0.008 258);
+  --sidebar-primary: oklch(0.74 0.05 255);
+  --sidebar-primary-foreground: oklch(0.19 0.014 260);
+  --sidebar-accent: oklch(0.31 0.018 260);
+  --sidebar-accent-foreground: oklch(0.92 0.008 258);
+  --sidebar-border: oklch(0.31 0.016 260);
+  --sidebar-ring: oklch(0.74 0.05 255);
 }
 
 @theme inline {
   --font-sans: 'Geist', 'Geist Fallback';
   --font-mono: 'Geist Mono', 'Geist Mono Fallback';
+  --font-serif: var(--font-source-serif), Georgia, 'Times New Roman', serif;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -121,5 +125,20 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-feature-settings: "cv01", "ss01";
+  }
+  /* Classic display type: transitional serif for headings and figures. */
+  .font-display {
+    font-family: var(--font-serif);
+    font-feature-settings: "liga", "onum";
+    letter-spacing: -0.01em;
+  }
+  /* Lining, tabular figures for data — columns line up like a ledger. */
+  .tnum {
+    font-variant-numeric: tabular-nums lining-nums;
+  }
+  /* A hairline rule used to structure genuinely tabular content. */
+  .rule {
+    @apply border-t border-border;
   }
 }

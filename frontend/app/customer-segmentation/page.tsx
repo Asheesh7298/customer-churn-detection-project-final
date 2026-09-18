@@ -1,6 +1,7 @@
 "use client";
 
 import { Card } from "@/components/ui/card";
+import { PageHeader } from "@/components/page-header";
 import { useSegmentation } from "@/lib/hooks";
 import { MetricCard } from "@/components/metric-card";
 import Link from "next/link";
@@ -9,11 +10,10 @@ export default function SegmentationPage() {
   const { data: segmentation, loading } = useSegmentation(true);
 
   return (
-    <div className="space-y-8 p-4 md:p-8">
-      <div className="space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight">Customer Segmentation</h1>
-        <p className="text-muted-foreground">Customers grouped by churn risk level</p>
-      </div>
+    <div className="mx-auto max-w-6xl space-y-8 p-4 md:p-8">
+      <PageHeader title="Customer Segmentation">
+        Real customers grouped by churn risk level.
+      </PageHeader>
 
       {loading ? (
         <Card className="p-8 text-center text-muted-foreground">Loading segmentation...</Card>

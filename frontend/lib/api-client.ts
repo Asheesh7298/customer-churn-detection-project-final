@@ -6,310 +6,336 @@ import {
   TrendResponse,
   SegmentationResponse,
   ModelMetrics,
+  ModelComparisonRow,
+  WhatIfResponse,
+  BusinessValueParams,
+  BusinessValueResponse,
+  CohortRow,
   APIError,
 } from "./types";
 import { mockApiClient } from "./mock-api";
-import { transformCustomerData } from "./feature-transformer";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
 const API_TIMEOUT = parseInt(process.env.NEXT_PUBLIC_API_TIMEOUT || "30000");
 const API_KEY = process.env.NEXT_PUBLIC_API_KEY || "";
-const USE_MOCK_API = process.env.NEXT_PUBLIC_USE_MOCK_API === "true"; // Set to true to use mock API, false for real API
+const FORCE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK_API === "true";
 
-let isRealAPIAvailable: boolean | null = null;
+// Whether the live backend answered its health check. `null` = not yet probed.
+let liveApi: boolean | null = FORCE_MOCK ? false : null;
 
-// Simulate API key from a secure backend endpoint in production
-const getApiKey = async (): Promise<string> => {
-  if (API_KEY) return API_KEY;
-  
-  // In production, fetch API key from backend route instead of exposing in frontend
-  try {
-    const response = await fetch("/api/get-api-key");
-    const data = await response.json();
-    return data.key;
-  } catch {
-    console.log("[v0] Using mock API (backend not available)");
-    return "mock-api-key";
-  }
-};
-
-// Check if real API is available
-const checkApiAvailability = async (): Promise<boolean> => {
-  if (isRealAPIAvailable !== null) return isRealAPIAvailable;
-  
-  try {
-    const response = await fetch(`${API_BASE_URL}/health`, {
-      signal: AbortSignal.timeout(3000),
-    });
-    isRealAPIAvailable = response.ok;
-    return isRealAPIAvailable;
-  } catch {
-    isRealAPIAvailable = false;
-    return false;
-  }
-};
-
-interface FetchOptions extends RequestInit {
-  timeout?: number;
+export function isLiveApi(): boolean {
+  return liveApi === true;
 }
 
-// Generic fetch wrapper with timeout and error handling
-async function fetchWithTimeout<T>(
-  url: string,
-  options: FetchOptions = {}
-): Promise<T> {
-  const timeout = options.timeout || API_TIMEOUT;
-  const controller = new AbortController();
-  const id = setTimeout(() => controller.abort(), timeout);
-
+async function checkLive(): Promise<boolean> {
+  if (liveApi !== null) return liveApi;
   try {
-    const apiKey = await getApiKey();
-    
-    const response = await fetch(url, {
-      ...options,
-      signal: controller.signal,
-      headers: {
-        "Content-Type": "application/json",
-        "X-API-Key": apiKey,
-        ...options.headers,
-      },
+    const res = await fetch(`${API_BASE_URL}/health`, {
+      signal: AbortSignal.timeout(3000),
     });
-
-    clearTimeout(id);
-
-    if (!response.ok) {
-      let errorData: APIError;
-      try {
-        errorData = await response.json();
-      } catch {
-        errorData = {
-          error: `HTTP ${response.status}: ${response.statusText}`,
-          status_code: response.status,
-          timestamp: new Date().toISOString(),
-        };
-      }
-      throw errorData;
-    }
-
-    return await response.json();
-  } catch (error) {
-    clearTimeout(id);
-    
-    if (error instanceof TypeError) {
-      if (error.message.includes("Failed to fetch")) {
-        throw {
-          error: "Network error - API server unavailable",
-          status_code: 0,
-          timestamp: new Date().toISOString(),
-        } as APIError;
-      }
-    }
-    throw error;
+    liveApi = res.ok;
+  } catch {
+    liveApi = false;
   }
+  return liveApi;
+}
+
+function headers(): Record<string, string> {
+  const h: Record<string, string> = { "Content-Type": "application/json" };
+  if (API_KEY) h["X-API-Key"] = API_KEY;
+  return h;
+}
+
+async function get<T>(path: string): Promise<T> {
+  const res = await fetch(`${API_BASE_URL}${path}`, {
+    headers: headers(),
+    signal: AbortSignal.timeout(API_TIMEOUT),
+  });
+  if (!res.ok) throw await asError(res);
+  return res.json();
+}
+
+async function post<T>(path: string, body: unknown): Promise<T> {
+  const res = await fetch(`${API_BASE_URL}${path}`, {
+    method: "POST",
+    headers: headers(),
+    body: JSON.stringify(body),
+    signal: AbortSignal.timeout(API_TIMEOUT),
+  });
+  if (!res.ok) throw await asError(res);
+  return res.json();
+}
+
+async function asError(res: Response): Promise<APIError> {
+  try {
+    const data = await res.json();
+    return {
+      error: data.detail || data.error || res.statusText,
+      status_code: res.status,
+      timestamp: new Date().toISOString(),
+    };
+  } catch {
+    return {
+      error: `HTTP ${res.status}`,
+      status_code: res.status,
+      timestamp: new Date().toISOString(),
+    };
+  }
+}
+
+// --- map the friendly frontend request to raw Telco fields the model expects ---
+function toTelco(r: PredictionRequest): Record<string, unknown> {
+  const contract =
+    r.contract_type === "two_year"
+      ? "Two year"
+      : r.contract_type === "one_year"
+        ? "One year"
+        : "Month-to-month";
+  const internet =
+    r.internet_service === "fiber"
+      ? "Fiber optic"
+      : r.internet_service === "dsl"
+        ? "DSL"
+        : "No";
+  const hasInternet = internet !== "No";
+  const svc = (on: boolean) =>
+    !hasInternet ? "No internet service" : on ? "Yes" : "No";
+
+  return {
+    gender: "Male",
+    SeniorCitizen: (r.age ?? 40) >= 65 ? 1 : 0,
+    Partner: "No",
+    Dependents: "No",
+    tenure: Math.max(0, Math.round(r.tenure ?? 1)),
+    PhoneService: "Yes",
+    MultipleLines: "No",
+    InternetService: internet,
+    OnlineSecurity: svc(!!r.online_security),
+    OnlineBackup: svc(false),
+    DeviceProtection: svc(false),
+    TechSupport: svc(!!r.tech_support),
+    StreamingTV: svc(false),
+    StreamingMovies: svc(false),
+    Contract: contract,
+    PaperlessBilling: "Yes",
+    PaymentMethod: "Electronic check",
+    MonthlyCharges: r.monthly_charges ?? 70,
+    TotalCharges: r.total_charges ?? (r.monthly_charges ?? 70) * (r.tenure ?? 1),
+  };
+}
+
+interface RawPrediction {
+  churn_probability: number;
+  churn_prediction: number;
+  risk_level: string;
+  top_contributions: {
+    feature: string;
+    value: string;
+    shap_value: number;
+    direction: string;
+  }[];
+  model_version: string;
+  prediction_timestamp: string;
+}
+
+function fromRawPrediction(
+  raw: RawPrediction,
+  customerId: string
+): PredictionResponse {
+  return {
+    customer_id: customerId,
+    churn_probability: raw.churn_probability,
+    risk_level: raw.risk_level as PredictionResponse["risk_level"],
+    feature_importance: (raw.top_contributions || []).map((c) => ({
+      feature: c.feature,
+      importance: Math.abs(c.shap_value),
+      contribution_direction:
+        c.direction === "increases" ? "positive" : "negative",
+      value: c.value,
+    })),
+    model_version: raw.model_version,
+    prediction_timestamp: raw.prediction_timestamp,
+  };
 }
 
 export const apiClient = {
-  // Prediction endpoints
   async predict(request: PredictionRequest): Promise<PredictionResponse> {
-    if (USE_MOCK_API) {
-      console.log("[v0] Using mock API (USE_MOCK_API=true)");
-      return mockApiClient.predict(request);
-    }
-    
+    if (!(await checkLive())) return mockApiClient.predict(request);
     try {
-      // Transform customer data to 30-feature format
-      const features = transformCustomerData({
-        age: request.age,
-        tenure: request.tenure,
-        monthly_charges: request.monthly_charges,
-        total_charges: request.total_charges,
-        contract_type: request.contract_type as any,
-        internet_service: request.internet_service as any,
-        online_security: request.online_security,
-        online_backup: request.online_backup,
-        device_protection: request.device_protection,
-        tech_support: request.tech_support,
-        streaming_tv: request.streaming_tv,
-        streaming_movies: request.streaming_movies,
-        phone_service: request.phone_service,
-        paperless_billing: request.paperless_billing,
-        payment_method: request.payment_method as any,
-      });
-
-      console.log("[v0] Calling real API at:", API_BASE_URL);
-      
-      // Call real API with transformed features
-      const response = await fetch(`${API_BASE_URL}/predict`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json",
-        },
-        body: JSON.stringify({ data: features }),
-        signal: AbortSignal.timeout(API_TIMEOUT),
-      });
-
-      if (!response.ok) {
-        console.warn("[v0] API returned error status:", response.status);
-        console.log("[v0] Falling back to mock API due to API error");
-        return mockApiClient.predict(request);
-      }
-
-      const data = await response.json();
-
-      // Validate response
-      if (typeof data.churn_probability !== 'number') {
-        console.warn("[v0] Invalid API response format, using mock API");
-        return mockApiClient.predict(request);
-      }
-
-      console.log("[v0] Got prediction from real API:", data.churn_probability);
-
-      // Transform API response to match PredictionResponse format
-      return {
-        customer_id: request.customer_id,
-        churn_probability: data.churn_probability,
-        risk_level: data.churn_probability > 0.66 ? "high" : data.churn_probability > 0.33 ? "medium" : "low",
-        feature_importance: [
-          { feature: "Tenure (months)", importance: 0.25, value: request.tenure },
-          { feature: "Monthly Charges", importance: 0.22, value: request.monthly_charges },
-          { feature: "Contract Type", importance: 0.20, value: request.contract_type },
-          { feature: "Age", importance: 0.18, value: request.age },
-          { feature: "Total Charges", importance: 0.15, value: request.total_charges },
-        ],
-        model_version: "1.0.0",
-        timestamp: new Date().toISOString(),
-      };
-    } catch (error) {
-      console.warn("[v0] Prediction error, using mock API:", error instanceof Error ? error.message : error);
-      // Fallback to mock API on ANY error (network, timeout, parse, etc.)
+      const raw = await post<RawPrediction>("/predict", toTelco(request));
+      return fromRawPrediction(raw, request.customer_id);
+    } catch {
       return mockApiClient.predict(request);
     }
   },
 
-  async predictBatch(requests: PredictionRequest[]): Promise<PredictionResponse[]> {
-    const useRealAPI = !USE_MOCK_API && (await checkApiAvailability());
-    
-    if (!useRealAPI) {
-      return Promise.all(requests.map(r => mockApiClient.predict(r)));
-    }
-    
-    return fetchWithTimeout<PredictionResponse[]>(
-      `${API_BASE_URL}/predict/batch`,
-      {
-        method: "POST",
-        body: JSON.stringify(requests),
-      }
-    ).catch(() => Promise.all(requests.map(r => mockApiClient.predict(r))));
+  async predictRaw(telco: Record<string, unknown>): Promise<RawPrediction> {
+    return post<RawPrediction>("/predict", telco);
   },
 
-  // Customer endpoints
+  async predictBatch(
+    requests: PredictionRequest[]
+  ): Promise<PredictionResponse[]> {
+    return Promise.all(requests.map((r) => this.predict(r)));
+  },
+
   async getCustomers(): Promise<CustomerInfo[]> {
-    const useRealAPI = !USE_MOCK_API && (await checkApiAvailability());
-    
-    if (!useRealAPI) {
+    if (!(await checkLive())) return mockApiClient.getCustomers();
+    try {
+      const data = await get<{ customers: any[] }>("/customers?limit=100");
+      return data.customers.map((c) => ({
+        customer_id: c.customer_id,
+        name: c.customer_id,
+        age: 0,
+        tenure: c.tenure,
+        monthly_charges: c.monthly_charges,
+        contract_type: c.contract_type,
+      }));
+    } catch {
       return mockApiClient.getCustomers();
     }
-    
-    return fetchWithTimeout<CustomerInfo[]>(`${API_BASE_URL}/customers`)
-      .catch(() => mockApiClient.getCustomers());
   },
 
   async getCustomerDetail(customerId: string): Promise<CustomerDetail> {
-    const useRealAPI = !USE_MOCK_API && (await checkApiAvailability());
-    
-    if (!useRealAPI) {
+    if (!(await checkLive())) return mockApiClient.getCustomerDetail(customerId);
+    try {
+      const c = await get<any>(`/customers/${encodeURIComponent(customerId)}`);
+      const f = c.features || {};
+      return {
+        customer_id: c.customer_id,
+        name: c.customer_id,
+        age: 0,
+        tenure: f.tenure ?? 0,
+        monthly_charges: f.MonthlyCharges ?? 0,
+        total_charges: f.TotalCharges ?? 0,
+        contract_type: f.Contract ?? "",
+        internet_service: f.InternetService ?? "",
+        support_tickets: 0,
+        tech_support: f.TechSupport === "Yes",
+        online_security: f.OnlineSecurity === "Yes",
+        churn_score: c.churn_probability,
+        risk_level: c.risk_level,
+        last_contact_days_ago: 0,
+      };
+    } catch {
       return mockApiClient.getCustomerDetail(customerId);
     }
-    
-    return fetchWithTimeout<CustomerDetail>(
-      `${API_BASE_URL}/customers/${encodeURIComponent(customerId)}`
-    ).catch(() => mockApiClient.getCustomerDetail(customerId));
   },
 
-  // Trend endpoints
   async getTrends(): Promise<TrendResponse> {
-    const useRealAPI = !USE_MOCK_API && (await checkApiAvailability());
-    
-    if (!useRealAPI) {
+    // Cohort churn (real, from dataset labels) drives the trend view.
+    if (!(await checkLive())) return mockApiClient.getTrends();
+    try {
+      const data = await get<{ cohorts: CohortRow[] }>("/cohorts");
+      const points = data.cohorts.map((c) => ({
+        month: c.cohort,
+        churn_rate: c.churn_rate,
+        total_customers: c.customers,
+        churned_customers: c.churned,
+      }));
+      const current = points.length ? points[0].churn_rate : 0;
+      return {
+        data: points,
+        current_month_churn: current,
+        trend_direction: "decreasing",
+      };
+    } catch {
       return mockApiClient.getTrends();
     }
-    
-    return fetchWithTimeout<TrendResponse>(`${API_BASE_URL}/trends`)
-      .catch(() => mockApiClient.getTrends());
   },
 
-  // Segmentation endpoints
   async getSegmentation(): Promise<SegmentationResponse> {
-    const useRealAPI = !USE_MOCK_API && (await checkApiAvailability());
-    
-    if (!useRealAPI) {
+    if (!(await checkLive())) return mockApiClient.getSegmentation();
+    try {
+      const s = await get<any>("/segmentation");
+      const toInfo = (arr: any[]): CustomerInfo[] =>
+        (arr || []).map((c) => ({
+          customer_id: c.customer_id,
+          name: c.customer_id,
+          age: 0,
+          tenure: 0,
+          monthly_charges: c.monthly_charges,
+          contract_type: c.contract_type,
+        }));
+      return {
+        low_risk: toInfo(s.low.customers),
+        medium_risk: toInfo(s.medium.customers),
+        high_risk: toInfo(s.high.customers),
+        low_risk_count: s.low.count,
+        medium_risk_count: s.medium.count,
+        high_risk_count: s.high.count,
+        avg_low_score: s.low.avg_probability,
+        avg_medium_score: s.medium.avg_probability,
+        avg_high_score: s.high.avg_probability,
+      };
+    } catch {
       return mockApiClient.getSegmentation();
     }
-    
-    return fetchWithTimeout<SegmentationResponse>(
-      `${API_BASE_URL}/segmentation`
-    ).catch(() => mockApiClient.getSegmentation());
   },
 
-  // Model metrics
   async getModelMetrics(): Promise<ModelMetrics> {
-    const useRealAPI = !USE_MOCK_API && (await checkApiAvailability());
-    
-    if (!useRealAPI) {
+    if (!(await checkLive())) return mockApiClient.getModelMetrics();
+    try {
+      return await get<ModelMetrics>("/model/metrics");
+    } catch {
       return mockApiClient.getModelMetrics();
     }
-    
-    return fetchWithTimeout<ModelMetrics>(`${API_BASE_URL}/model/metrics`)
-      .catch(() => mockApiClient.getModelMetrics());
   },
 
-  // Health check
+  async getModelComparison(): Promise<ModelComparisonRow[]> {
+    const data = await get<{ models: ModelComparisonRow[] }>(
+      "/model/comparison"
+    );
+    return data.models;
+  },
+
+  async getWhatIf(telco: Record<string, unknown>): Promise<WhatIfResponse> {
+    return post<WhatIfResponse>("/whatif", telco);
+  },
+
+  async getBusinessValue(
+    params: BusinessValueParams
+  ): Promise<BusinessValueResponse> {
+    return post<BusinessValueResponse>("/business-value", params);
+  },
+
+  async getCohorts(): Promise<CohortRow[]> {
+    const data = await get<{ cohorts: CohortRow[] }>("/cohorts");
+    return data.cohorts;
+  },
+
+  async getSampleBatch(
+    n = 20
+  ): Promise<Record<string, unknown>[]> {
+    const data = await get<{ rows: Record<string, unknown>[] }>(
+      `/sample-batch?n=${n}`
+    );
+    return data.rows;
+  },
+
+  async scoreBatch(rows: Record<string, unknown>[]): Promise<
+    { index: number; churn_probability: number; churn_prediction: number; risk_level: string }[]
+  > {
+    const data = await post<{
+      results: {
+        index: number;
+        churn_probability: number;
+        churn_prediction: number;
+        risk_level: string;
+      }[];
+    }>("/predict/batch", rows);
+    return data.results;
+  },
+
   async healthCheck(): Promise<{ status: string }> {
-    const useRealAPI = !USE_MOCK_API && (await checkApiAvailability());
-    
-    if (!useRealAPI) {
+    if (!(await checkLive())) return mockApiClient.healthCheck();
+    try {
+      return await get<{ status: string }>("/health");
+    } catch {
       return mockApiClient.healthCheck();
     }
-    
-    return fetchWithTimeout<{ status: string }>(
-      `${API_BASE_URL}/health`,
-      {
-        timeout: 5000,
-      }
-    ).catch(() => mockApiClient.healthCheck());
   },
 };
 
-// Request deduplication to prevent duplicate calls
-const requestCache = new Map<string, Promise<any>>();
-
-export function useCachedRequest<T>(
-  key: string,
-  requestFn: () => Promise<T>,
-  ttl: number = 0
-): Promise<T> {
-  if (requestCache.has(key)) {
-    console.log("[v0] Using cached request for key:", key);
-    return requestCache.get(key);
-  }
-
-  const promise = requestFn();
-  requestCache.set(key, promise);
-
-  // Clear cache after TTL
-  if (ttl > 0) {
-    setTimeout(() => {
-      requestCache.delete(key);
-      console.log("[v0] Cache cleared for key:", key);
-    }, ttl);
-  }
-
-  return promise;
-}
-
-// Clear request cache
-export function clearRequestCache() {
-  requestCache.clear();
-  console.log("[v0] Request cache cleared");
-}
+export { toTelco };

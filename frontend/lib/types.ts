@@ -7,6 +7,7 @@ export interface FeatureImportance {
   feature: string;
   importance: number;
   contribution_direction: "positive" | "negative";
+  value?: string | number;
 }
 
 export interface PredictionResponse {
@@ -81,8 +82,14 @@ export interface SegmentationResponse {
 }
 
 // Model metrics
+export interface CurvePoint {
+  x: number;
+  y: number;
+}
+
 export interface ModelMetrics {
   model_version: string;
+  model_type?: string;
   train_date: string;
   accuracy: number;
   precision: number;
@@ -91,6 +98,63 @@ export interface ModelMetrics {
   roc_auc: number;
   total_customers_trained: number;
   features_used: string[];
+  confusion_matrix?: number[][]; // [[TN, FP], [FN, TP]]
+  curves?: { roc: CurvePoint[]; pr: CurvePoint[] };
+  n_test?: number;
+  churn_rate?: number;
+}
+
+// Model comparison (LogReg vs RF vs XGBoost)
+export interface ModelComparisonRow {
+  model: string;
+  accuracy: number;
+  precision: number;
+  recall: number;
+  f1_score: number;
+  roc_auc: number;
+}
+
+// What-if retention simulator
+export interface WhatIfScenario {
+  field: string;
+  label: string;
+  churn_probability: number;
+  delta: number;
+}
+
+export interface WhatIfResponse {
+  baseline_probability: number;
+  scenarios: WhatIfScenario[];
+}
+
+// Business-value / ROI
+export interface BusinessValueParams {
+  threshold: number;
+  expected_lifetime_months: number;
+  retention_offer_cost: number;
+  retention_success_rate: number;
+}
+
+export interface BusinessValueResponse {
+  threshold: number;
+  customers_evaluated: number;
+  customers_flagged: number;
+  revenue_at_risk: number;
+  intervention_cost: number;
+  expected_revenue_saved: number;
+  net_benefit: number;
+  roi: number;
+  precision_at_threshold: number | null;
+  recall_at_threshold: number | null;
+}
+
+// Tenure cohort churn
+export interface CohortRow {
+  cohort: string;
+  customers: number;
+  churned: number;
+  churn_rate: number;
+  avg_monthly_charges: number;
 }
 
 // API Error type

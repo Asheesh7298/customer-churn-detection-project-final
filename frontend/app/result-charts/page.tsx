@@ -1,6 +1,7 @@
 "use client";
 
 import { Card } from "@/components/ui/card";
+import { PageHeader } from "@/components/page-header";
 import { useSegmentation } from "@/lib/hooks";
 import {
   PieChart,
@@ -56,15 +57,10 @@ export default function ResultChartsPage() {
   };
 
   return (
-    <div className="space-y-8 p-4 md:p-8">
-      <div className="space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight">
-          Churn Factor Analysis
-        </h1>
-        <p className="text-muted-foreground">
-          Visual analysis of churn risk distribution and factors
-        </p>
-      </div>
+    <div className="mx-auto max-w-6xl space-y-8 p-4 md:p-8">
+      <PageHeader title="Churn Factor Analysis">
+        Visual analysis of churn risk distribution and the factors that drive it.
+      </PageHeader>
 
       {loading ? (
         <Card className="p-8 text-center text-muted-foreground">

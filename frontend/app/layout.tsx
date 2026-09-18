@@ -1,11 +1,18 @@
 import type { Metadata, Viewport } from 'next'
-import { Geist, Geist_Mono } from 'next/font/google'
+import { Geist, Geist_Mono, Source_Serif_4 } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { Navigation } from '@/components/navigation'
+import { ThemeProvider } from '@/components/theme-provider'
 import './globals.css'
 
-const _geist = Geist({ subsets: ["latin"] });
+const geist = Geist({ subsets: ["latin"], variable: "--font-geist" });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
+const sourceSerif = Source_Serif_4({
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  style: ["normal", "italic"],
+  variable: "--font-source-serif",
+});
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -25,12 +32,18 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={`${geist.variable} ${sourceSerif.variable}`}
+    >
       <body className="font-sans antialiased">
-        <Navigation />
-        <main className="min-h-[calc(100vh-4rem)]">
-          {children}
-        </main>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <Navigation />
+          <main className="min-h-[calc(100vh-4rem)]">
+            {children}
+          </main>
+        </ThemeProvider>
         <Analytics />
       </body>
     </html>

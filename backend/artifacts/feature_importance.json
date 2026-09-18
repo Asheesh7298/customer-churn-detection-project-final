@@ -1,0 +1,84 @@
+{
+  "features": [
+    {
+      "feature": "tenure",
+      "importance": 1.1544336019553014
+    },
+    {
+      "feature": "Contract: Two year",
+      "importance": 0.7755183646656575
+    },
+    {
+      "feature": "InternetService: Fiber optic",
+      "importance": 0.707980615293255
+    },
+    {
+      "feature": "MonthlyCharges",
+      "importance": 0.6761135548609788
+    },
+    {
+      "feature": "Contract: Month-to-month",
+      "importance": 0.6577131860448401
+    },
+    {
+      "feature": "InternetService: DSL",
+      "importance": 0.6224654861581066
+    },
+    {
+      "feature": "TotalCharges",
+      "importance": 0.48969805129648036
+    },
+    {
+      "feature": "InternetService: No",
+      "importance": 0.2754029743754424
+    },
+    {
+      "feature": "OnlineSecurity: No internet service",
+      "importance": 0.2754029743754424
+    },
+    {
+      "feature": "OnlineBackup: No internet service",
+      "importance": 0.2754029743754424
+    },
+    {
+      "feature": "DeviceProtection: No internet service",
+      "importance": 0.2754029743754424
+    },
+    {
+      "feature": "TechSupport: No internet service",
+      "importance": 0.2754029743754424
+    },
+    {
+      "feature": "StreamingTV: No internet service",
+      "importance": 0.2754029743754424
+    },
+    {
+      "feature": "StreamingMovies: No internet service",
+      "importance": 0.2754029743754424
+    },
+    {
+      "feature": "StreamingMovies: Yes",
+      "importance": 0.27539242551535087
+    },
+    {
+      "feature": "PaperlessBilling: No",
+      "importance": 0.2629050222522443
+    },
+    {
+      "feature": "StreamingTV: Yes",
+      "importance": 0.26216592950019896
+    },
+    {
+      "feature": "PaymentMethod: Electronic check",
+      "importance": 0.2402754234166224
+    },
+    {
+      "feature": "MultipleLines: No",
+      "importance": 0.21531913831729635
+    },
+    {
+      "feature": "Dependents: Yes",
+      "importance": 0.21004933593391859
+    }
+  ]
+}

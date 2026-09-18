@@ -1,6 +1,7 @@
 "use client";
 
 import { Card } from "@/components/ui/card";
+import { PageHeader } from "@/components/page-header";
 import { useTrendData } from "@/lib/hooks";
 import {
   LineChart,
@@ -42,13 +43,11 @@ export default function TrendAnalysisPage() {
     : null;
 
   return (
-    <div className="space-y-8 p-4 md:p-8">
-      <div className="space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight">Trend Analysis</h1>
-        <p className="text-muted-foreground">
-          12-month churn trends and historical analysis
-        </p>
-      </div>
+    <div className="mx-auto max-w-6xl space-y-8 p-4 md:p-8">
+      <PageHeader title="Tenure Cohorts">
+        Real churn rate by how long customers have stayed — straight from the
+        dataset&apos;s labels.
+      </PageHeader>
 
       {loading ? (
         <Card className="p-8 text-center text-muted-foreground">
