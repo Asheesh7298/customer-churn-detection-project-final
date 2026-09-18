@@ -51,6 +51,9 @@ class Contribution(BaseModel):
 
 
 class PredictionResponse(BaseModel):
+    # "model_version" is a real field name here, not a Pydantic model attribute.
+    model_config = {"protected_namespaces": ()}
+
     customer_id: Optional[str] = None
     churn_probability: float
     churn_prediction: int

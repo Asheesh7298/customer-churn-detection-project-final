@@ -59,6 +59,28 @@ def _startup() -> None:
     get_model()  # warm the model + SHAP explainer
 
 
+@app.get("/")
+def root() -> dict:
+    """Small landing payload so the base URL isn't a bare 404."""
+    return {
+        "service": "Churn Prediction API",
+        "version": app.version,
+        "docs": "/docs",
+        "health": "/health",
+        "endpoints": [
+            "/predict",
+            "/predict/batch",
+            "/whatif",
+            "/business-value",
+            "/model/metrics",
+            "/model/comparison",
+            "/cohorts",
+            "/segmentation",
+            "/customers",
+        ],
+    }
+
+
 @app.get("/health")
 def health() -> dict:
     m = get_model()
