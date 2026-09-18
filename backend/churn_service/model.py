@@ -53,7 +53,10 @@ class ChurnModel:
         self.prep = self.pipeline.named_steps["prep"]
         self.clf = self.pipeline.named_steps["model"]
         self.trans_names = list(self.prep.get_feature_names_out())
-        self._explainer = self._build_explainer()
+        # SHAP is imported lazily on first explanation to keep startup light
+        # (matters on small/free instances).
+        self._explainer = None
+        self._explainer_ready = False
 
     # ---- prediction ----
     def predict_proba(self, df: pd.DataFrame) -> np.ndarray:
@@ -61,6 +64,13 @@ class ChurnModel:
         return self.pipeline.predict_proba(df)[:, 1]
 
     # ---- explanations ----
+    def _get_explainer(self):
+        """Build the SHAP explainer on first use, once."""
+        if not self._explainer_ready:
+            self._explainer = self._build_explainer()
+            self._explainer_ready = True
+        return self._explainer
+
     def _build_explainer(self):
         try:
             import shap
@@ -74,13 +84,14 @@ class ChurnModel:
 
     def explain(self, df: pd.DataFrame, top_n: int = 6) -> list[dict]:
         """Top SHAP contributions for the first row of df."""
-        if self._explainer is None:
+        explainer = self._get_explainer()
+        if explainer is None:
             return []
         try:
             import shap  # noqa: F401
 
             x = self.prep.transform(df.iloc[[0]])
-            values = self._explainer.shap_values(x)
+            values = explainer.shap_values(x)
             if isinstance(values, list):  # some explainers return per-class lists
                 values = values[-1]
             values = np.asarray(values).reshape(-1)

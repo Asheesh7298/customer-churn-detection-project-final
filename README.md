@@ -91,7 +91,7 @@ docker compose up --build
 # 1. Backend
 cd backend
 python -m venv .venv && source .venv/Scripts/activate   # or .venv/bin/activate on macOS/Linux
-pip install -r requirements.txt
+pip install -r requirements-dev.txt   # runtime + training/test deps (xgboost, pytest)
 python train.py            # trains the model, writes artifacts/
 uvicorn churn_service.main:app --reload --port 8000
 

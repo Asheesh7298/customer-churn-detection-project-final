@@ -1,0 +1,11 @@
+# Development: everything needed to train the model and run the tests.
+# Superset of the runtime requirements.
+-r requirements.txt
+
+# Training only (not imported at serve time — the served model is logistic
+# regression). Pinned to a version with wheels for Python 3.11+.
+xgboost==2.1.3
+
+# Tests
+pytest==8.3.3
+httpx==0.27.2
