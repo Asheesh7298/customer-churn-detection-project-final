@@ -4,77 +4,77 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* "Ledger" palette — cool paper ground, ink text, deep navy as the single
-     non-semantic accent (green/amber/red stay reserved for risk semantics). */
-  --background: oklch(0.985 0.003 255);
-  --foreground: oklch(0.23 0.022 260);
+  /* Analytics-tool palette — light gray app canvas, white cards, a single
+     indigo accent. Risk semantics (green/amber/red) stay separate. */
+  --background: oklch(0.976 0.003 265);
+  --foreground: oklch(0.24 0.02 265);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.23 0.022 260);
+  --card-foreground: oklch(0.24 0.02 265);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.23 0.022 260);
-  --primary: oklch(0.36 0.055 259);
-  --primary-foreground: oklch(0.985 0.003 255);
-  --secondary: oklch(0.95 0.006 258);
-  --secondary-foreground: oklch(0.28 0.02 260);
-  --muted: oklch(0.955 0.005 258);
-  --muted-foreground: oklch(0.50 0.016 260);
-  --accent: oklch(0.93 0.008 258);
-  --accent-foreground: oklch(0.30 0.03 260);
-  --destructive: oklch(0.55 0.16 25);
-  --destructive-foreground: oklch(0.985 0.003 255);
-  --border: oklch(0.89 0.007 260);
-  --input: oklch(0.91 0.006 260);
-  --ring: oklch(0.36 0.055 259);
-  --chart-1: oklch(0.36 0.055 259);
-  --chart-2: oklch(0.55 0.09 200);
-  --chart-3: oklch(0.62 0.10 160);
-  --chart-4: oklch(0.60 0.13 60);
-  --chart-5: oklch(0.55 0.14 25);
-  --radius: 0.3rem;
-  --sidebar: oklch(0.985 0.003 255);
-  --sidebar-foreground: oklch(0.23 0.022 260);
-  --sidebar-primary: oklch(0.36 0.055 259);
-  --sidebar-primary-foreground: oklch(0.985 0.003 255);
-  --sidebar-accent: oklch(0.93 0.008 258);
-  --sidebar-accent-foreground: oklch(0.30 0.03 260);
-  --sidebar-border: oklch(0.89 0.007 260);
-  --sidebar-ring: oklch(0.36 0.055 259);
+  --popover-foreground: oklch(0.24 0.02 265);
+  --primary: oklch(0.54 0.205 275);
+  --primary-foreground: oklch(0.99 0 0);
+  --secondary: oklch(0.965 0.004 265);
+  --secondary-foreground: oklch(0.30 0.02 265);
+  --muted: oklch(0.965 0.004 265);
+  --muted-foreground: oklch(0.54 0.018 265);
+  --accent: oklch(0.955 0.012 275);
+  --accent-foreground: oklch(0.40 0.10 275);
+  --destructive: oklch(0.58 0.20 25);
+  --destructive-foreground: oklch(0.99 0 0);
+  --border: oklch(0.92 0.005 265);
+  --input: oklch(0.92 0.005 265);
+  --ring: oklch(0.54 0.205 275);
+  --chart-1: oklch(0.54 0.205 275);
+  --chart-2: oklch(0.62 0.14 200);
+  --chart-3: oklch(0.68 0.13 160);
+  --chart-4: oklch(0.72 0.15 70);
+  --chart-5: oklch(0.62 0.19 20);
+  --radius: 0.5rem;
+  --sidebar: oklch(0.99 0.002 265);
+  --sidebar-foreground: oklch(0.24 0.02 265);
+  --sidebar-primary: oklch(0.54 0.205 275);
+  --sidebar-primary-foreground: oklch(0.99 0 0);
+  --sidebar-accent: oklch(0.955 0.012 275);
+  --sidebar-accent-foreground: oklch(0.40 0.10 275);
+  --sidebar-border: oklch(0.92 0.005 265);
+  --sidebar-ring: oklch(0.54 0.205 275);
 }
 
 .dark {
-  /* Ink-on-slate. Accent becomes a pale steel so it reads on dark. */
-  --background: oklch(0.185 0.012 260);
-  --foreground: oklch(0.92 0.008 258);
-  --card: oklch(0.225 0.014 260);
-  --card-foreground: oklch(0.92 0.008 258);
-  --popover: oklch(0.225 0.014 260);
-  --popover-foreground: oklch(0.92 0.008 258);
-  --primary: oklch(0.74 0.05 255);
-  --primary-foreground: oklch(0.19 0.014 260);
-  --secondary: oklch(0.29 0.016 260);
-  --secondary-foreground: oklch(0.92 0.008 258);
-  --muted: oklch(0.28 0.014 260);
-  --muted-foreground: oklch(0.66 0.014 258);
-  --accent: oklch(0.31 0.018 260);
-  --accent-foreground: oklch(0.92 0.008 258);
-  --destructive: oklch(0.58 0.17 25);
-  --destructive-foreground: oklch(0.92 0.008 258);
-  --border: oklch(0.31 0.016 260);
-  --input: oklch(0.31 0.016 260);
-  --ring: oklch(0.74 0.05 255);
-  --chart-1: oklch(0.74 0.05 255);
-  --chart-2: oklch(0.65 0.09 200);
-  --chart-3: oklch(0.68 0.10 160);
-  --chart-4: oklch(0.70 0.13 60);
-  --chart-5: oklch(0.64 0.15 25);
-  --sidebar: oklch(0.185 0.012 260);
-  --sidebar-foreground: oklch(0.92 0.008 258);
-  --sidebar-primary: oklch(0.74 0.05 255);
-  --sidebar-primary-foreground: oklch(0.19 0.014 260);
-  --sidebar-accent: oklch(0.31 0.018 260);
-  --sidebar-accent-foreground: oklch(0.92 0.008 258);
-  --sidebar-border: oklch(0.31 0.016 260);
-  --sidebar-ring: oklch(0.74 0.05 255);
+  /* Slate canvas, slightly lighter cards, a brighter indigo accent. */
+  --background: oklch(0.205 0.012 265);
+  --foreground: oklch(0.95 0.004 265);
+  --card: oklch(0.245 0.014 265);
+  --card-foreground: oklch(0.95 0.004 265);
+  --popover: oklch(0.245 0.014 265);
+  --popover-foreground: oklch(0.95 0.004 265);
+  --primary: oklch(0.64 0.19 275);
+  --primary-foreground: oklch(0.99 0 0);
+  --secondary: oklch(0.28 0.014 265);
+  --secondary-foreground: oklch(0.95 0.004 265);
+  --muted: oklch(0.28 0.014 265);
+  --muted-foreground: oklch(0.68 0.014 265);
+  --accent: oklch(0.32 0.03 275);
+  --accent-foreground: oklch(0.90 0.04 275);
+  --destructive: oklch(0.62 0.20 25);
+  --destructive-foreground: oklch(0.99 0 0);
+  --border: oklch(0.30 0.012 265);
+  --input: oklch(0.30 0.012 265);
+  --ring: oklch(0.64 0.19 275);
+  --chart-1: oklch(0.66 0.19 275);
+  --chart-2: oklch(0.68 0.13 200);
+  --chart-3: oklch(0.72 0.13 160);
+  --chart-4: oklch(0.76 0.15 70);
+  --chart-5: oklch(0.66 0.19 20);
+  --sidebar: oklch(0.185 0.012 265);
+  --sidebar-foreground: oklch(0.95 0.004 265);
+  --sidebar-primary: oklch(0.64 0.19 275);
+  --sidebar-primary-foreground: oklch(0.99 0 0);
+  --sidebar-accent: oklch(0.30 0.02 275);
+  --sidebar-accent-foreground: oklch(0.92 0.03 275);
+  --sidebar-border: oklch(0.30 0.012 265);
+  --sidebar-ring: oklch(0.64 0.19 275);
 }
 
 @theme inline {
@@ -127,18 +127,14 @@
     @apply bg-background text-foreground;
     font-feature-settings: "cv01", "ss01";
   }
-  /* Classic display type: transitional serif for headings and figures. */
+  /* Display type: the UI sans, tightened — modern product/analytics headings. */
   .font-display {
-    font-family: var(--font-serif);
-    font-feature-settings: "liga", "onum";
-    letter-spacing: -0.01em;
+    font-family: var(--font-sans);
+    letter-spacing: -0.02em;
+    font-weight: 600;
   }
-  /* Lining, tabular figures for data — columns line up like a ledger. */
+  /* Tabular figures so data columns and KPIs line up. */
   .tnum {
-    font-variant-numeric: tabular-nums lining-nums;
-  }
-  /* A hairline rule used to structure genuinely tabular content. */
-  .rule {
-    @apply border-t border-border;
+    font-variant-numeric: tabular-nums;
   }
 }

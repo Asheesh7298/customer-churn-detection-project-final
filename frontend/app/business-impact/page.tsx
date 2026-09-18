@@ -19,8 +19,8 @@ import {
   Cell,
 } from "recharts";
 
-// Muted, desaturated tones — classic ledger, not neon dashboard.
-const C = { risk: "#a1524b", saved: "#4f7a63", cost: "#b08a46" };
+// Vivid analytics tones.
+const C = { risk: "#f43f5e", saved: "#10b981", cost: "#f59e0b" };
 
 export default function BusinessImpactPage() {
   const [threshold, setThreshold] = useState(0.5);

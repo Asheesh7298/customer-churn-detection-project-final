@@ -17,8 +17,8 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-const NAVY = "#3c4a68";
-const GREEN = "#4f7a63";
+const NAVY = "#6366f1"; // indigo — matches the app accent
+const GREEN = "#10b981"; // emerald
 
 export default function ModelPerformancePage() {
   const [metrics, setMetrics] = useState<ModelMetrics | null>(null);
