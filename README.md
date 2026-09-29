@@ -6,7 +6,7 @@ which customers to target, and what it's worth in dollars.
 
 Trained on the [IBM Telco Customer Churn dataset](https://www.kaggle.com/datasets/blastchar/telco-customer-churn)
 (7,043 real customers), served by a FastAPI + scikit-learn backend, and
-visualized in a Next.js dashboard.
+visualized in a React (Vite) dashboard.
 
 > **Why this project is different from a typical churn demo:** the numbers are
 > real. Metrics come from a held-out test set (not hard-coded), predictions run
@@ -14,8 +14,9 @@ visualized in a Next.js dashboard.
 > connects model output to money. Nothing on the dashboard is faked when the API
 > is running.
 
-<!-- Add a screenshot or GIF here once deployed:
-![Dashboard](docs/dashboard.png) -->
+![Overview dashboard](docs/screenshots/overview.png)
+
+![Model report](docs/screenshots/model-report.png)
 
 ---
 
@@ -31,7 +32,7 @@ visualized in a Next.js dashboard.
 | 🗃️ **Batch scoring** | Score a CSV (or a real sample) of customers and export the results |
 | 📈 **Tenure cohorts** | Real churn rate by tenure bucket, straight from the dataset labels |
 | 🗂️ **Segmentation** | Real customers grouped into low / medium / high risk |
-| 🔌 **Graceful demo mode** | Frontend falls back to bundled data if the API is offline (clearly labelled) |
+| 🔌 **Graceful demo mode** | While the API is asleep, shows a labelled snapshot of real results, then switches to live data once it wakes |
 
 ## Model performance (held-out test set)
 
@@ -63,7 +64,7 @@ flowchart LR
         API --> DB[(SQLite<br/>prediction log)]
         SHAP[SHAP explainer] --> API
     end
-    subgraph Frontend["Next.js dashboard"]
+    subgraph Frontend["React + Vite dashboard"]
         UI[Predict · What-If · ROI<br/>Model · Cohorts · Segments]
     end
     API <-->|JSON over HTTP| UI
@@ -72,8 +73,8 @@ flowchart LR
 ## Tech stack
 
 **Backend** — FastAPI, scikit-learn, XGBoost, SHAP, Pydantic v2, SQLite, pytest
-**Frontend** — Next.js 16 (App Router), React, TypeScript, Tailwind, shadcn/ui, Recharts
-**Infra** — Docker Compose, GitHub Actions CI (trains model + runs tests + builds frontend)
+**Frontend** — React 19, Vite, React Router, TypeScript, Tailwind CSS, Recharts
+**Infra** — Docker Compose, GitHub Actions CI (trains model + runs tests + type-checks and builds frontend)
 
 ## Quick start
 
@@ -97,10 +98,13 @@ uvicorn churn_service.main:app --reload --port 8000
 
 # 2. Frontend (new terminal)
 cd frontend
-npm install --legacy-peer-deps
-cp .env.local.example .env.local
-npm run dev                # http://localhost:3000
+npm install
+npm run dev                # http://localhost:5173
 ```
+
+The frontend talks to the live deployed API by default. To use your local
+backend instead, copy `frontend/.env.local.example` to `.env.local` and set
+`VITE_API_BASE_URL=http://localhost:8000`.
 
 Run the backend tests with `cd backend && pytest -q`.
 
@@ -121,9 +125,15 @@ Run the backend tests with `cd backend && pytest -q`.
 │   ├── data/telco_churn.csv
 │   └── tests/test_api.py
 ├── frontend/
-│   ├── app/                    # dashboard pages (predict, what-if, ROI, model, …)
-│   ├── components/ · lib/      # UI, API client, hooks, types
-│   └── Dockerfile
+│   ├── src/
+│   │   ├── main.tsx            # entry point: router + theme
+│   │   ├── App.tsx             # routes (URL → page), lazy-loaded
+│   │   ├── pages/              # one component per screen (Overview, Predict, …)
+│   │   ├── components/         # sidebar app shell + shared UI pieces
+│   │   └── lib/                # API client, data hooks, types, formatters
+│   ├── index.html
+│   ├── vite.config.ts
+│   └── Dockerfile              # builds with Vite, serves with nginx
 ├── docker-compose.yml
 └── .github/workflows/ci.yml
 ```

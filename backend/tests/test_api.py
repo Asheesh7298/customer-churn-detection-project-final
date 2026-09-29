@@ -58,6 +58,14 @@ def test_high_risk_scores_higher_than_low_risk(client):
     assert len(hi["top_contributions"]) > 0
 
 
+def test_contributions_have_one_row_per_feature(client):
+    # One-hot columns (e.g. Contract's three categories) must be summed back
+    # into a single contribution, not listed once per column.
+    contribs = client.post("/predict", json=HIGH_RISK).json()["top_contributions"]
+    features = [c["feature"] for c in contribs]
+    assert len(features) == len(set(features))
+
+
 def test_whatif_reduces_churn(client):
     w = client.post("/whatif", json=HIGH_RISK).json()
     assert w["scenarios"]
