@@ -107,17 +107,21 @@ class ChurnModel:
             values = np.asarray(values).reshape(-1)
 
             row = df.iloc[0]
-            contribs = []
+            # One-hot encoding splits a feature like Contract into one column per
+            # category. SHAP values are additive, so sum them back into a single
+            # contribution per original feature.
+            grouped: dict[str, dict] = {}
             for name, sv in zip(self.trans_names, values):
-                col, shown_value = self._describe(name, row)
-                contribs.append(
-                    {
-                        "feature": col,
-                        "value": shown_value,
-                        "shap_value": float(sv),
-                        "direction": "increases" if sv > 0 else "decreases",
-                    }
+                label, shown_value = self._describe(name, row)
+                entry = grouped.setdefault(
+                    label, {"feature": label, "value": shown_value, "shap_value": 0.0}
                 )
+                entry["shap_value"] += float(sv)
+
+            contribs = [
+                {**e, "direction": "increases" if e["shap_value"] > 0 else "decreases"}
+                for e in grouped.values()
+            ]
             contribs.sort(key=lambda c: abs(c["shap_value"]), reverse=True)
             return contribs[:top_n]
         except Exception:

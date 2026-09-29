@@ -1,7 +1,7 @@
 # Deployment Guide
 
-Two services: a **FastAPI backend** and a **Next.js frontend**. Deploy the
-backend first, then point the frontend at it.
+Two services: a **FastAPI backend** (Render) and a **React + Vite frontend**
+(Vercel). Deploy the backend first.
 
 ## 1. Push to GitHub
 
@@ -9,47 +9,53 @@ backend first, then point the frontend at it.
 git push origin main
 ```
 
-## 2. Backend → Render (or Railway)
+## 2. Backend → Render
 
-The backend ships a Dockerfile that trains the model at build time, so the image
-is self-contained.
+**New → Web Service** → connect this repo, then:
 
-**Render**
-1. New → **Web Service** → connect this repo.
-2. Root directory: `backend`
-3. Environment: **Docker** (it auto-detects `backend/Dockerfile`).
-4. (Optional) Environment variables:
-   - `API_KEY` — set to require an `X-API-Key` header (leave unset for an open demo).
-   - `FRONTEND_ORIGINS` — your frontend URL, e.g. `https://your-app.vercel.app` (or `*` for any).
-5. Deploy. Note the URL, e.g. `https://your-backend.onrender.com`.
-6. Verify: open `https://your-backend.onrender.com/health` — it should return `{"status":"healthy",...}`.
+| Setting | Value |
+|---|---|
+| Language | Python 3 |
+| Root Directory | `backend` |
+| Build Command | `pip install -r requirements.txt` |
+| Start Command | `uvicorn churn_service.main:app --host 0.0.0.0 --port $PORT` |
+| Health Check Path | `/health` |
 
-> Free-tier Render services sleep after inactivity; the first request after a
-> while takes ~30s to wake. The frontend's demo-mode fallback covers this.
+Python is pinned by `backend/.python-version` (3.12). The trained model is
+committed in `backend/artifacts/`, so the service loads it at startup — no
+training happens on Render. `requirements.txt` holds only runtime dependencies;
+training and test tools (xgboost, pytest) live in `requirements-dev.txt`.
 
-**Railway** is equivalent: new project from repo, root `backend`, it reads the
-`Procfile` / Dockerfile; add the same env vars.
+Optional environment variables:
+- `API_KEY` — require an `X-API-Key` header on prediction endpoints.
+- `FRONTEND_ORIGINS` — allowed CORS origins (defaults to `*`).
+
+Verify: `https://<your-service>.onrender.com/health` returns `{"status":"healthy",...}`.
+
+> Free-tier services sleep after ~15 minutes idle and take ~30s to wake. The
+> frontend shows a labelled snapshot of real results meanwhile, and switches to
+> live data automatically once the API responds.
 
 ## 3. Frontend → Vercel
 
 1. New Project → import this repo.
-2. **Root Directory: `frontend`** (important — the Next app is not at the repo root).
-3. Framework preset: **Next.js** (auto-detected).
-4. Environment variables:
-   - `NEXT_PUBLIC_API_BASE_URL` = the backend URL from step 2 (no trailing slash).
-   - `NEXT_PUBLIC_API_KEY` = the same value as the backend's `API_KEY`, **only if** you set one.
-5. Deploy.
+2. **Root Directory: `frontend`**.
+3. That's it — `frontend/vercel.json` tells Vercel it's a Vite app, where the
+   build output is, and to route every URL to `index.html` so links like
+   `/model` work on refresh.
 
-Install command note: this project uses `--legacy-peer-deps`. If Vercel's build
-fails on peer deps, set the install command to `npm install --legacy-peer-deps`.
+No environment variables are required: the app calls the live Render API by
+default. To point it elsewhere, set `VITE_API_BASE_URL` (and `VITE_API_KEY`
+only if the backend sets `API_KEY`). `VITE_*` values are baked in at build
+time, so redeploy after changing them.
 
 ## 4. Verify the two are talking
 
-Open the deployed frontend. The header badge should read **"Live API"** (green).
-If it says **"Demo data"** (amber), the frontend can't reach the backend — check:
-- `NEXT_PUBLIC_API_BASE_URL` is correct and public.
-- The backend's `FRONTEND_ORIGINS` allows the frontend origin (CORS).
-- The backend is awake (hit `/health` once to wake a sleeping free instance).
+The badge at the bottom of the sidebar should read **"Live API"** (green). If it
+reads **"Demo data"** (amber) for more than a minute:
+- Open the backend's `/health` URL to check it's up.
+- Check `VITE_API_BASE_URL`, if you set one, is correct.
+- Check the backend's `FRONTEND_ORIGINS` allows your frontend's origin.
 
 ## Local Docker (optional)
 
